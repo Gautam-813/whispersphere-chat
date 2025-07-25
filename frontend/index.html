@@ -2107,7 +2107,14 @@
             // Show connecting status
             updateConnectionStatus('Connecting...', false);
 
-            ws = new WebSocket(`ws://${location.host}/ws/${hashedRoom}`);
+            // Use wss:// for HTTPS sites (like Render.com) and ws:// for HTTP (localhost)
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${wsProtocol}//${location.host}/ws/${hashedRoom}`;
+
+            // Temporary debug info (remove after testing)
+            console.log('Connecting to:', wsUrl);
+
+            ws = new WebSocket(wsUrl);
 
             ws.onopen = async () => {
                 isConnecting = false;
@@ -2232,6 +2239,9 @@
 
             ws.onclose = (event) => {
                 isConnecting = false;
+
+                // Temporary debug info (remove after testing)
+                console.log('WebSocket closed:', event.code, event.reason);
                 connectionLost = true;
 
                 updateConnectionStatus('Disconnected', false);
@@ -2253,6 +2263,12 @@
 
             ws.onerror = (error) => {
                 isConnecting = false;
+
+                // Temporary debug info (remove after testing)
+                console.error('WebSocket error:', error);
+
+                // Show user-friendly error message
+                updateConnectionStatus('Connection failed. Check your internet connection.', false);
             };
         }
 
